@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lakehouse Blueprints — Reference Architecture Composer</title>
+<meta name="description" content="Interactive reference-architecture composer for the Databricks Lakehouse. Pick a scenario — Streaming ETL, Fraud & AML, GenAI Assistant, BI, ML at Scale — and see the tailored architecture, components and design notes. Illustrative patterns by Jason Miles." />
+<meta name="author" content="Jason Miles" />
+<meta name="theme-color" content="#0A0C10" />
+<link rel="canonical" href="https://jason-miles.github.io/lakehouse-blueprints/" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Lakehouse Blueprints — Reference Architecture Composer" />
+<meta property="og:description" content="Pick a scenario, compose the Databricks Lakehouse architecture live." />
+<meta property="og:url" content="https://jason-miles.github.io/lakehouse-blueprints/" />
+<meta property="og:image" content="https://jason-miles.github.io/lakehouse-blueprints/assets/og-card.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#0A0C10; --paper:#FBFBF9; --red:#FF3621; --red-soft:#FF5F46;
+    --bg:var(--paper); --text:#0A0C10; --muted:#6E7681; --hair:#E4E5E1;
+    --panel:#F1F1EE; --panel-2:#FFFFFF; --chip:#FFFFFF;
+    --sans:'Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    --maxw:1200px; --radius:13px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:var(--ink); --text:#EDF0F3; --muted:#7D8590; --hair:#20252C;
+      --panel:#12161C; --panel-2:#0F1319; --chip:#12161C; }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased; color-scheme:light dark}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); letter-spacing:-.01em}
+  a{color:inherit}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px}
+  .kicker{font-size:12px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:var(--muted)}
+
+  header{border-bottom:1px solid var(--hair); padding:30px 0 26px}
+  header .top{display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap}
+  .brand{display:flex; align-items:center; gap:11px; font-weight:700; font-size:15px}
+  .brand .tick{width:22px;height:3px;border-radius:2px;background:var(--red)}
+  header h1{font-size:clamp(30px,5vw,46px); font-weight:700; letter-spacing:-.03em; margin:20px 0 8px}
+  header p.sub{margin:0; color:var(--muted); font-size:16.5px; max-width:60ch}
+  .back{font-size:13.5px; font-weight:600; color:var(--muted); text-decoration:none}
+  .back:hover{color:var(--text)}
+
+  .tabs{display:flex; gap:10px; flex-wrap:wrap; padding:26px 0 6px}
+  .tab{font-family:var(--sans); font-size:14px; font-weight:600; color:var(--muted); cursor:pointer;
+    background:none; border:1px solid var(--hair); border-radius:999px; padding:9px 18px; transition:all .16s}
+  .tab:hover{color:var(--text); border-color:var(--muted)}
+  .tab[aria-selected="true"]{background:var(--red); color:#fff; border-color:var(--red)}
+  .scenario-tag{color:var(--muted); font-size:14.5px; padding:2px 0 22px}
+
+  /* diagram */
+  .canvas{border:1px solid var(--hair); border-radius:var(--radius); background:var(--panel-2); padding:24px 22px; overflow-x:auto}
+  .flow{display:flex; align-items:stretch; gap:0; min-width:max-content}
+  .stage{width:152px; flex:none; display:flex; flex-direction:column}
+  .stage .lbl{font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:12px}
+  .stage .chips{display:flex; flex-direction:column; gap:8px; flex:1}
+  .arrow{display:flex; align-items:center; justify-content:center; width:32px; color:var(--red); flex:none}
+  .arrow svg{width:20px;height:20px}
+  .chip{font-size:13px; font-weight:600; padding:11px 13px; border:1px solid var(--hair); border-radius:9px;
+    background:var(--chip); cursor:pointer; transition:transform .14s, border-color .14s; line-height:1.25}
+  .chip:hover{transform:translateY(-2px); border-color:var(--muted)}
+  .chip.accent{border-color:var(--red); box-shadow:inset 0 0 0 1px var(--red)}
+  .chip .k{display:block; font-size:10.5px; font-weight:700; letter-spacing:.08em; color:var(--red); text-transform:uppercase; margin-bottom:3px}
+  .chip.active-detail{background:var(--red); color:#fff; border-color:var(--red)}
+  .chip.active-detail .k{color:#fff}
+  .govern{margin-top:18px; border:1px dashed var(--hair); border-radius:10px; padding:13px 16px; display:flex; align-items:center; gap:12px}
+  .govern .dot{width:8px;height:8px;border-radius:50%;background:var(--red)}
+  .govern b{font-size:13.5px} .govern span{color:var(--muted); font-size:13px}
+
+  .panels{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:22px}
+  @media(max-width:760px){ .panels{grid-template-columns:1fr} }
+  .panel{border:1px solid var(--hair); border-radius:var(--radius); background:var(--panel); padding:22px 24px}
+  .panel h2{font-size:11px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin:0 0 16px}
+  #detail{font-size:14px; color:var(--muted); min-height:42px; border-bottom:1px solid var(--hair); padding-bottom:14px; margin-bottom:14px}
+  #detail b{color:var(--text)}
+  #bom{display:flex; flex-wrap:wrap; gap:8px; list-style:none; margin:0; padding:0}
+  #bom li{font-size:12.5px; font-weight:600; color:var(--muted); border:1px solid var(--hair); border-radius:7px; padding:5px 10px}
+  #notes{margin:0; padding:0; list-style:none; display:grid; gap:12px}
+  #notes li{position:relative; padding-left:20px; font-size:14.5px; color:var(--text)}
+  #notes li::before{content:""; position:absolute; left:0; top:9px; width:7px; height:7px; border-radius:2px; background:var(--red)}
+
+  footer{border-top:1px solid var(--hair); margin-top:56px; padding:28px 0 44px; color:var(--muted); font-size:13px}
+  footer a{color:var(--muted); font-weight:600}
+  footer a:hover{color:var(--text)}
+  .hint{color:var(--muted); font-size:12px; margin:10px 2px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="top">
+      <span class="brand"><span class="tick"></span>Lakehouse Blueprints</span>
+      <a class="back" href="https://jason-miles.github.io">← jason-miles.github.io</a>
+    </div>
+    <h1>Reference architectures, composed live.</h1>
+    <p class="sub">Pick a scenario and see a tailored Databricks Lakehouse architecture — components, medallion flow and design notes. Click any component to learn what it does.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div class="scenario-tag" id="scenarioTag"></div>
+
+  <div class="canvas">
+    <div class="flow" id="flow"></div>
+    <div class="govern">
+      <span class="dot"></span>
+      <b>Unity Catalog</b>
+      <span>— governance spanning every layer: lineage · access control · discovery · audit</span>
+    </div>
+  </div>
+  <div class="hint">Scroll the diagram sideways on small screens · click a component for details.</div>
+
+  <div class="panels">
+    <div class="panel">
+      <h2>Components</h2>
+      <div id="detail">Select a component to see what it does.</div>
+      <ul id="bom"></ul>
+    </div>
+    <div class="panel">
+      <h2>Design notes</h2>
+      <ul id="notes"></ul>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    Illustrative reference patterns — a starting point for architecture conversations, not an official Databricks reference or pricing.
+    Built by <a href="https://jason-miles.github.io">Jason Miles</a> · <a href="https://github.com/jason-miles/lakehouse-blueprints">source on GitHub</a>.
+  </div>
+</footer>
+
+<script>
+  // short blurbs for clickable components
+  const C = {
+    "Auto Loader":"Incrementally and efficiently loads new files as they land in cloud storage.",
+    "Structured Streaming":"Fault-tolerant stream processing with exactly-once guarantees on Delta.",
+    "Lakeflow Connect":"Managed connectors that ingest from databases and SaaS apps into the Lakehouse.",
+    "Spark Declarative Pipelines":"Declarative ETL (formerly DLT) with built-in orchestration, quality and lineage.",
+    "DLT Expectations":"Declarative data-quality rules enforced inline as data flows through the pipeline.",
+    "Delta":"Open storage layer with ACID transactions, time travel and schema enforcement.",
+    "Feature engineering":"Curate reusable features governed and served from Unity Catalog.",
+    "Feature tables":"Governed, versioned feature tables shared across models and teams.",
+    "Metric Views":"Governed, reusable business metrics defined once and queried everywhere.",
+    "Vector Search":"Managed vector index over your governed data for retrieval-augmented generation.",
+    "Model Serving":"Low-latency, autoscaling serving for classic ML and foundation models.",
+    "Agent Bricks":"Build, evaluate and deploy production agents grounded in your data.",
+    "Genie":"Natural-language analytics over curated data — ask questions, get governed answers.",
+    "Databricks SQL":"Serverless SQL warehouses for BI and ad-hoc analytics on the Lakehouse.",
+    "AI/BI Dashboards":"Governed dashboards with an integrated natural-language experience.",
+    "Databricks App":"Ship interactive data & AI apps directly on the platform, next to the data.",
+    "MLflow":"Track experiments, evaluate GenAI, and manage the model lifecycle.",
+    "Lakehouse Monitoring":"Monitor data and model quality and drift in production.",
+    "ai_parse_document":"AI function that parses PDFs and documents into structured, queryable text.",
+    "Chunk & embed":"Split and embed documents for semantic retrieval via Vector Search.",
+    "Risk scores":"Gold-layer model outputs consumed by apps and downstream systems."
+  };
+  const gold="Gold", accentSet = new Set(["Model Serving","Vector Search","Agent Bricks","Genie","Risk scores","AI/BI Dashboards"]);
+
+  const SCENARIOS = {
+    streaming:{ name:"Streaming ETL", tag:"Real-time ingestion to governed gold tables — sub-second to serving.",
+      stages:{ Sources:["Kafka","Event Hubs","IoT / Zerobus"], Ingest:["Auto Loader","Structured Streaming"],
+        Bronze:["Delta"], Silver:["Spark Declarative Pipelines","DLT Expectations"], Gold:["Aggregate tables"], Serve:["Databricks SQL","AI/BI Dashboards"] },
+      notes:["Exactly-once delivery with checkpointing on Delta.","Data-quality enforced inline with DLT Expectations.","Serverless streaming scales independently of the sinks."] },
+    fraud:{ name:"Fraud & AML", tag:"Low-latency scoring over governed transaction and watchlist data.",
+      stages:{ Sources:["Core banking","Card transactions","Sanctions & watchlists"], Ingest:["Lakeflow Connect","Auto Loader"],
+        Bronze:["Delta"], Silver:["Spark Declarative Pipelines","Feature engineering"], Gold:["Feature tables","Risk scores"], Serve:["Model Serving","Databricks App","Genie"] },
+      notes:["Real-time scoring served from Model Serving endpoints.","Shared feature tables keep models consistent and auditable.","Unity Catalog lineage supports compliance and investigations."] },
+    genai:{ name:"GenAI Assistant", tag:"Retrieval-augmented assistant grounded in governed enterprise content.",
+      stages:{ Sources:["Documents / PDFs","Knowledge bases","Tickets"], Ingest:["ai_parse_document","Chunk & embed"],
+        Bronze:["Delta"], Silver:["Cleaned chunks"], Gold:["Vector Search"], Serve:["Model Serving","Agent Bricks","Genie","Databricks App"] },
+      notes:["Managed embeddings + Vector Search over governed data.","Evaluate and guard responses with MLflow.","Ground answers in Unity Catalog-permissioned sources."] },
+    bi:{ name:"BI & Analytics", tag:"Governed metrics and natural-language analytics for the business.",
+      stages:{ Sources:["ERP / CRM","SaaS apps","Files"], Ingest:["Lakeflow Connect"],
+        Bronze:["Delta"], Silver:["Spark Declarative Pipelines"], Gold:["Metric Views","Star schemas"], Serve:["Databricks SQL","AI/BI Dashboards","Genie"] },
+      notes:["Define metrics once with Metric Views, reuse everywhere.","Natural-language BI for business users via Genie.","Serverless SQL warehouses — no cluster management."] },
+    ml:{ name:"ML at Scale", tag:"Reproducible training to governed, monitored production serving.",
+      stages:{ Sources:["Feature sources","Event streams"], Ingest:["Auto Loader","Lakeflow Connect"],
+        Bronze:["Delta"], Silver:["Feature engineering"], Gold:["Feature tables"], Serve:["MLflow","Model Serving","Lakehouse Monitoring"] },
+      notes:["Reproducible training and evaluation with MLflow.","UC-governed features and model versions.","Drift and quality monitored continuously in production."] }
+  };
+  const ORDER = ["Sources","Ingest","Bronze","Silver","Gold","Serve"];
+  const ARROW = '<div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>';
+
+  let current = "streaming";
+  const tabsEl=document.getElementById('tabs'), flowEl=document.getElementById('flow'),
+        bomEl=document.getElementById('bom'), notesEl=document.getElementById('notes'),
+        detailEl=document.getElementById('detail'), tagEl=document.getElementById('scenarioTag');
+
+  Object.entries(SCENARIOS).forEach(([k,s])=>{
+    const b=document.createElement('button'); b.className='tab'; b.textContent=s.name;
+    b.setAttribute('role','tab'); b.setAttribute('aria-selected', k===current);
+    b.onclick=()=>{ current=k; render(); };
+    tabsEl.appendChild(b);
+  });
+
+  function setDetail(name, el){
+    document.querySelectorAll('.chip.active-detail').forEach(c=>c.classList.remove('active-detail'));
+    if(el) el.classList.add('active-detail');
+    detailEl.innerHTML = C[name] ? `<b>${name}</b> — ${C[name]}` : `<b>${name}</b>`;
+  }
+
+  function render(){
+    const s=SCENARIOS[current];
+    [...tabsEl.children].forEach((b)=> b.setAttribute('aria-selected', SCENARIOS[Object.keys(SCENARIOS)[[...tabsEl.children].indexOf(b)]].name===s.name));
+    tagEl.textContent = s.tag;
+    // diagram
+    flowEl.innerHTML='';
+    ORDER.forEach((stage,i)=>{
+      const col=document.createElement('div'); col.className='stage';
+      const chips=(s.stages[stage]||[]).map(name=>{
+        const acc=accentSet.has(name)?' accent':'';
+        return `<div class="chip${acc}" data-name="${name}">${name}</div>`;
+      }).join('');
+      col.innerHTML=`<div class="lbl">${stage}</div><div class="chips">${chips}</div>`;
+      flowEl.appendChild(col);
+      if(i<ORDER.length-1) flowEl.insertAdjacentHTML('beforeend', ARROW);
+    });
+    flowEl.querySelectorAll('.chip').forEach(c=> c.onclick=()=>setDetail(c.dataset.name,c));
+    // bom
+    const all=[...new Set(ORDER.flatMap(st=>s.stages[st]||[]))];
+    bomEl.innerHTML=all.map(n=>`<li>${n}</li>`).join('');
+    // notes
+    notesEl.innerHTML=s.notes.map(n=>`<li>${n}</li>`).join('');
+    detailEl.innerHTML='Select a component to see what it does.';
+  }
+  render();
+</script>
+</body>
+</html>
