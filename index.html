@@ -160,9 +160,15 @@
     "Lakehouse Monitoring":"Monitor data and model quality and drift in production.",
     "ai_parse_document":"AI function that parses PDFs and documents into structured, queryable text.",
     "Chunk & embed":"Split and embed documents for semantic retrieval via Vector Search.",
-    "Risk scores":"Gold-layer model outputs consumed by apps and downstream systems."
+    "Risk scores":"Gold-layer model outputs consumed by apps and downstream systems.",
+    "Delta Sharing":"Open protocol for sharing live data across orgs and clouds — no copies.",
+    "Clean Rooms":"Privacy-safe collaboration on shared data without exposing raw records.",
+    "Databricks Marketplace":"Discover, distribute and monetise data, models and solutions.",
+    "Lakebase":"Managed Postgres (OLTP) integrated with the Lakehouse for operational apps.",
+    "Serving tables":"Curated gold tables optimised for low-latency downstream serving.",
+    "Online features":"Low-latency feature lookups served to production models."
   };
-  const gold="Gold", accentSet = new Set(["Model Serving","Vector Search","Agent Bricks","Genie","Risk scores","AI/BI Dashboards"]);
+  const accentSet = new Set(["Model Serving","Vector Search","Agent Bricks","Genie","Risk scores","AI/BI Dashboards","Delta Sharing","Clean Rooms","Lakebase"]);
 
   const SCENARIOS = {
     streaming:{ name:"Streaming ETL", tag:"Real-time ingestion to governed gold tables — sub-second to serving.",
@@ -184,7 +190,15 @@
     ml:{ name:"ML at Scale", tag:"Reproducible training to governed, monitored production serving.",
       stages:{ Sources:["Feature sources","Event streams"], Ingest:["Auto Loader","Lakeflow Connect"],
         Bronze:["Delta"], Silver:["Feature engineering"], Gold:["Feature tables"], Serve:["MLflow","Model Serving","Lakehouse Monitoring"] },
-      notes:["Reproducible training and evaluation with MLflow.","UC-governed features and model versions.","Drift and quality monitored continuously in production."] }
+      notes:["Reproducible training and evaluation with MLflow.","UC-governed features and model versions.","Drift and quality monitored continuously in production."] },
+    sharing:{ name:"Data Sharing & Clean Rooms", tag:"Share and collaborate on live data across organisations — no copies.",
+      stages:{ Sources:["First-party data","Partner feeds","Enrichment"], Ingest:["Lakeflow Connect","Delta Sharing (in)"],
+        Bronze:["Delta"], Silver:["Spark Declarative Pipelines"], Gold:["Governed datasets"], Serve:["Delta Sharing","Clean Rooms","Databricks Marketplace"] },
+      notes:["Share live data with Delta Sharing — no replication or lock-in.","Collaborate privacy-safely in Clean Rooms without exposing raw rows.","Distribute and discover via Databricks Marketplace, all UC-governed."] },
+    lakebase:{ name:"Operational Apps", tag:"Transactional apps on Lakebase, backed by the governed Lakehouse.",
+      stages:{ Sources:["App events","Transactions"], Ingest:["Auto Loader","Lakeflow Connect"],
+        Bronze:["Delta"], Silver:["Spark Declarative Pipelines"], Gold:["Serving tables","Online features"], Serve:["Lakebase","Databricks App","Model Serving"] },
+      notes:["Low-latency OLTP with Lakebase, synced to the Lakehouse.","Build apps next to the data with Databricks Apps.","Serve online features to models with governed lineage."] }
   };
   const ORDER = ["Sources","Ingest","Bronze","Silver","Gold","Serve"];
   const ARROW = '<div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>';
