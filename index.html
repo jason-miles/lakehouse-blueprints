@@ -166,7 +166,8 @@
     "Databricks Marketplace":"Discover, distribute and monetise data, models and solutions.",
     "Lakebase":"Managed Postgres (OLTP) integrated with the Lakehouse for operational apps.",
     "Serving tables":"Curated gold tables optimised for low-latency downstream serving.",
-    "Online features":"Low-latency feature lookups served to production models."
+    "Online features":"Low-latency feature lookups served to production models.",
+    "Lakehouse Federation":"Query external databases and warehouses in place, without moving data."
   };
   const accentSet = new Set(["Model Serving","Vector Search","Agent Bricks","Genie","Risk scores","AI/BI Dashboards","Delta Sharing","Clean Rooms","Lakebase"]);
 
@@ -198,7 +199,11 @@
     lakebase:{ name:"Operational Apps", tag:"Transactional apps on Lakebase, backed by the governed Lakehouse.",
       stages:{ Sources:["App events","Transactions"], Ingest:["Auto Loader","Lakeflow Connect"],
         Bronze:["Delta"], Silver:["Spark Declarative Pipelines"], Gold:["Serving tables","Online features"], Serve:["Lakebase","Databricks App","Model Serving"] },
-      notes:["Low-latency OLTP with Lakebase, synced to the Lakehouse.","Build apps next to the data with Databricks Apps.","Serve online features to models with governed lineage."] }
+      notes:["Low-latency OLTP with Lakebase, synced to the Lakehouse.","Build apps next to the data with Databricks Apps.","Serve online features to models with governed lineage."] },
+    migrate:{ name:"Warehouse Migration", tag:"Phased migration from a legacy EDW to the Lakehouse.",
+      stages:{ Sources:["Teradata / Netezza","Oracle","Synapse"], Ingest:["Lakeflow Connect","Lakehouse Federation"],
+        Bronze:["Delta"], Silver:["Spark Declarative Pipelines"], Gold:["Conformed marts","Metric Views"], Serve:["Databricks SQL","AI/BI Dashboards","Genie"] },
+      notes:["Query the legacy warehouse in place with Lakehouse Federation during a phased cutover.","Re-platform ETL to Spark Declarative Pipelines, table by table.","Serverless Databricks SQL replaces the legacy warehouse for BI."] }
   };
   const ORDER = ["Sources","Ingest","Bronze","Silver","Gold","Serve"];
   const ARROW = '<div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>';
